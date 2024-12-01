@@ -42,7 +42,7 @@ def save_to_database(name: str, ext: str, email: str):
 
 def scrape_contacts(url: str) -> list[dict]:
     """
-    從指定的 URL 抓取聯絡資訊。
+    從指定的 URL 抓取聯絡資訊，並將職稱視為分機。
     參數: url (str): 網頁的 URL。
     回傳: list[dict]: 包含聯絡資訊的字典列表，每個字典包含 'name', 'ext', 和 'email'。
     """
@@ -57,9 +57,9 @@ def scrape_contacts(url: str) -> list[dict]:
 
     html_content = response.text
 
-    # 假設聯絡人資料包含姓名、分機和 Email，可以用更適合的正則表達式
+    # 人工智慧系資料包含姓名、分機和 Email
     pattern = re.compile(
-        r'<div.*?>.*?<p>(.*?)</p>.*?<p>(\d{4,})|無分機</p>.*?<p>(\S+@\S+\.\S+)</p>.*?</div>',
+        r'<div.*?>.*?<p>(.*?)</p>.*?<p>(\d{4,})</p>.*?<p>(\S+@\S+\.\S+)</p>.*?</div>',
         re.DOTALL
     )
     matches = pattern.findall(html_content)
@@ -68,7 +68,7 @@ def scrape_contacts(url: str) -> list[dict]:
     for match in matches:
         contacts.append({
             "name": match[0].strip(),
-            "ext": match[1].strip() if match[1] else "無分機",
+            "ext": match[1].strip(),
             "email": match[2].strip()
         })
 
@@ -102,7 +102,7 @@ def fetch_contacts() -> None:
     """
     url = url_var.get()
     if not url:
-        messagebox.showerror("錯誤", "請輸入有效的 URL。")
+        messagebox.showerror("網路錯誤", "請輸入有效的 URL。")
         return
 
     try:
@@ -113,7 +113,7 @@ def fetch_contacts() -> None:
             save_to_database(contact['name'], contact['ext'], contact['email'])
         messagebox.showinfo("成功", "聯絡資訊已成功抓取並儲存到資料庫。")
     except RuntimeError as e:
-        messagebox.showerror("錯誤", str(e))
+        messagebox.showerror("網路錯誤", str(e))
 
 
 # 建立 Tkinter 主視窗
@@ -122,7 +122,7 @@ root.title("聯絡資訊爬蟲")
 root.geometry("640x480")
 
 # 網址輸入框
-url_var = StringVar(value="https://ai.ncut.edu.tw/p/412-1063-2382.php")
+url_var = StringVar(value="https://ai.ncut.edu.tw/p/412-1063-2382.php")  # 人工智慧系網址
 Label(root, text="URL:").grid(row=0, column=0, padx=10, pady=10, sticky="w")
 url_entry = Entry(root, textvariable=url_var, width=50)
 url_entry.grid(row=0, column=1, padx=10, pady=10, sticky="we")
