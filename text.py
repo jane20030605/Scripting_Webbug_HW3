@@ -1,40 +1,33 @@
 import requests
 import re
-import pandas as pd
 
-# 設定目標網頁 URL
-url = "https://ai.ncut.edu.tw/p/412-1063-2382.php"  # 替換為你的網頁網址
+# 目標網址
+url = "https://ai.ncut.edu.tw/p/412-1063-2382.php"
 
-# 發送 GET 請求獲取網頁內容
+# 發送 HTTP 請求
 response = requests.get(url)
 
-# 確保網頁下載成功
+# 確認請求是否成功
 if response.status_code == 200:
+    # 取得網頁內容
     html_content = response.text
 
-    # 使用正則表達式提取資料，假設每條資料包括名稱、信箱、電話
-    # 根據你提供的範本，假設HTML中每個人物的資料是以以下格式呈現：
-    pattern = re.compile(r'(<li>(.*?)</li>)', re.DOTALL)
-    items = re.findall(pattern, html_content)
+    # 定義正則表達式模式
+    name_pattern = r'<a[^>]*class=".*?mtitle.*?"[^>]*>(.*?)</a>'
+    email_pattern = r'信箱：</span>([^<]+)</p>'
+    ext_pattern = r'分機 ([0-9]+)</p>'
 
-    # 用來儲存每個人的資料
-    data = []
+    # 匹配所有姓名、信箱、分機
+    names = re.findall(name_pattern, html_content)
+    emails = re.findall(email_pattern, html_content)
+    exts = re.findall(ext_pattern, html_content)
 
-    # 處理每一條資料
-    for item in items:
-        # 假設每條資料包含：名稱、信箱、電話
-        name_pattern = re.search(r'>([^<]+)<', item[1])  # 擷取名字
-        email_pattern = re.search(r'信箱：(.*?)(?=<)', item[1])  # 擷取email
-        phone_pattern = re.search(r'電話：(.*?)(?=<)', item[1])  # 擷取電話
+    # 整理並輸出結果
+    for i in range(len(names)):
+        name = names[i] if i < len(names) else "N/A"
+        email = emails[i] if i < len(emails) else "N/A"
+        ext = exts[i] if i < len(exts) else "N/A"
+        print(f"姓名: {name}, 信箱: {email}, 分機: {ext}")
 
-        if name_pattern and email_pattern and phone_pattern:
-            name = name_pattern.group(1).strip()
-            email = email_pattern.group(1).strip()
-            phone = phone_pattern.group(1).strip()
-            data.append([name, email, phone])
-
-    # 使用 pandas 格式化成表格顯示
-    df = pd.DataFrame(data, columns=["姓名", "信箱", "電話"])
-    print(df)
 else:
-    print("網頁下載失敗，狀態碼:", response.status_code)
+    print(f"無法訪問網頁，HTTP 狀態碼: {response.status_code}")
